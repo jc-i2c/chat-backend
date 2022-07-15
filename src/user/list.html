@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <title>W3.CSS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
+  <body>
+    <div class="w3-container">
+      <h3>Chat</h3>
+      <ul class="w3-ul w3-card-4">
+        <li class="w3-bar">
+          <!-- <span
+            onclick="this.parentElement.style.display='none'"
+            class="w3-bar-item w3-button w3-white w3-xlarge w3-right"
+            >×</span
+          > -->
+          <div class="w3-bar-item">
+            <span class="w3-large">Mike</span><br />
+            <span>Web Designer</span>
+          </div>
+        </li>
+
+        <li class="w3-bar">
+          <div class="w3-bar-item">
+            <span class="w3-large">Mike</span><br />
+            <span>Web Designer</span>
+          </div>
+        </li>
+
+        <li class="w3-bar">
+          <div class="w3-bar-item">
+            <span class="w3-large">Mike</span><br />
+            <span>Web Designer</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io();
+
+    window.onload = function () {
+      socket.emit("getAllUsers");
+    };
+
+    // form.addEventListener("load", function (e) {
+    //   e.preventDefault();
+    // });
+  </script>
+</html>
