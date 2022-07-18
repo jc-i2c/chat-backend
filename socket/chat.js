@@ -2,6 +2,7 @@ var moment = require("moment");
 
 const ChatRoom = require("../models/M_chat_room");
 const Chat = require("../models/M_chat");
+const User = require("./../models/M_users");
 
 const { dateTime } = require("../utils/date_time");
 
@@ -80,6 +81,10 @@ const sendMessage = async (data) => {
       updated_At: currentDateTime,
     });
 
+    await ChatRoom.findByIdAndUpdate(chat_room_id, {
+      $set: { lastmsg: message, msgtime: currentTime },
+    });
+
     let newMessage = await Chat.findById(insertMsg._id).populate({
       path: "senderid",
       select: "name",
@@ -93,4 +98,12 @@ const sendMessage = async (data) => {
   }
 };
 
-module.exports = { createRoom, getAllMessage, sendMessage };
+const getAllUsers = async () => {
+  try {
+    return await User.find();
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+module.exports = { createRoom, getAllMessage, sendMessage, getAllUsers };

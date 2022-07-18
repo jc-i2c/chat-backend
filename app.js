@@ -41,7 +41,12 @@ const io = new Server(server, {
   },
 });
 
-let { createRoom, getAllMessage, sendMessage } = require("./socket/chat");
+let {
+  createRoom,
+  getAllMessage,
+  sendMessage,
+  getAllUsers,
+} = require("./socket/chat");
 
 io.on("connection", (socket) => {
   // console.log("socket connected", socket.id);
@@ -76,6 +81,16 @@ io.on("connection", (socket) => {
     try {
       let { newMessage, roomId } = await sendMessage(data);
       io.to(roomId).emit("sendMessageOn", newMessage);
+    } catch (error) {
+      console.log(error.message);
+    }
+  });
+
+  // Get all user list SOCKET.
+  socket.on("userListEmit", async () => {
+    try {
+      let userList = await getAllUsers();
+      socket.emit("userListOn", userList);
     } catch (error) {
       console.log(error.message);
     }
