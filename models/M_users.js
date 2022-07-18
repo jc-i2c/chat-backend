@@ -17,6 +17,7 @@ const usersSchema = new mongoose.Schema({
   },
   name: { type: String, required: [true, "Name is required."] },
   user_id: { type: Number, required: [true, "User Id is required."] },
+  islogin: { type: Boolean, required: [true, "User is login or not."] },
   created_At: {
     type: String,
     required: [true, "Create date is required."],

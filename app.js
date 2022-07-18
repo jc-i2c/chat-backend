@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const http = require("http");
 const server = http.createServer(app);
 const cors = require("cors");
+const fs = require("fs");
 
 const { Server } = require("socket.io");
 
@@ -27,6 +28,8 @@ require("./server/database")
 
     app.use("/static", express.static("./index.html"));
 
+    app.use("/uploads", express.static("./uploads"));
+
     app.use("/static", express.static("./src/user"));
 
     app.use(require("./routes/"));
@@ -46,10 +49,14 @@ let {
   getAllMessage,
   sendMessage,
   getAllUsers,
+  updateStatus,
 } = require("./socket/chat");
 
 io.on("connection", (socket) => {
-  // console.log("socket connected", socket.id);
+  // client-side
+  socket.on("connect", () => {
+    console.log(socket.id);
+  });
 
   // Find or Create room users SOCKET CALL.
   socket.on("findRoomEmit", async (data) => {
@@ -79,7 +86,22 @@ io.on("connection", (socket) => {
   // Send message SOCKET.
   socket.on("sendMessageEmit", async (data) => {
     try {
-      let { newMessage, roomId } = await sendMessage(data);
+      let dataToSave = data;
+      if (data?.imageData) {
+        // process image
+        const image = data.imageData;
+        var splitted = image.split(";base64,");
+        var format = splitted[0].split("/")[1];
+
+        var imagePath = "./uploads/" + Date.now() + "." + format;
+
+        fs.writeFileSync(imagePath, splitted[1], {
+          encoding: "base64",
+        });
+        dataToSave = { ...dataToSave, message: imagePath };
+      }
+
+      let { newMessage, roomId } = await sendMessage(dataToSave);
       io.to(roomId).emit("sendMessageOn", newMessage);
     } catch (error) {
       console.log(error.message);
@@ -91,6 +113,17 @@ io.on("connection", (socket) => {
     try {
       let userList = await getAllUsers();
       socket.emit("userListOn", userList);
+    } catch (error) {
+      console.log(error.message);
+    }
+  });
+
+  // User online SOCKET.
+  socket.on("changeStatusEmit", async (userId) => {
+    try {
+      await updateStatus(userId);
+
+      socket.emit("updateUserEmit", userId);
     } catch (error) {
       console.log(error.message);
     }

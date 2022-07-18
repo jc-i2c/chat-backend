@@ -86,11 +86,11 @@ const codeVerify = async (req, res, next) => {
 
     let findUser = await User.findOne({ user_id: user_code });
 
-    if (!findUser) throw new Error("Couldn't find users!");
+    if (!findUser) throw new Error("wrong credentials!");
 
     return res.send({
       success: true,
-      message: `User find into system!`,
+      message: `user login in successfully!`,
       data: findUser,
     });
   } catch (error) {

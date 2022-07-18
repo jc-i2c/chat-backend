@@ -106,4 +106,27 @@ const getAllUsers = async () => {
   }
 };
 
-module.exports = { createRoom, getAllMessage, sendMessage, getAllUsers };
+const updateStatus = async (userId) => {
+  try {
+    let findUser = await User.findById(userId);
+    if (findUser.islogin) {
+      return await User.findByIdAndUpdate(findUser._id, {
+        $set: { islogin: false },
+      });
+    } else {
+      return await User.findByIdAndUpdate(findUser._id, {
+        $set: { islogin: true },
+      });
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+module.exports = {
+  createRoom,
+  getAllMessage,
+  sendMessage,
+  getAllUsers,
+  updateStatus,
+};
