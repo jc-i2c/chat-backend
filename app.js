@@ -89,7 +89,7 @@ io.on("connection", (socket) => {
   socket.on("sendMessageEmit", async (data) => {
     try {
       let dataToSave = data;
-      if (dataToSave?.file) {
+      if (dataToSave.file) {
         // process image
         const image = data.file;
         var splitted = image.split(";base64,");

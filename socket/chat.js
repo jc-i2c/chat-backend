@@ -1,4 +1,4 @@
-var moment = require("moment");
+const moment = require("moment");
 
 const ChatRoom = require("../models/M_chat_room");
 const Chat = require("../models/M_chat");
@@ -63,6 +63,9 @@ const getAllMessage = async (roomId) => {
 // Send Message API.
 const sendMessage = async (data) => {
   try {
+    let roomId = null;
+    let response = {};
+
     let { chat_room_id, senderid, receiverid, message, filename } = data;
 
     let currentDateTime = await dateTime();
@@ -81,16 +84,22 @@ const sendMessage = async (data) => {
 
     let insertMsg = await Chat.create(insertData);
 
-    await ChatRoom.findByIdAndUpdate(chat_room_id, {
-      $set: { lastmsg: message, msgtime: currentTime },
-    });
-
     let newMessage = await Chat.findById(insertMsg._id).populate({
       path: "senderid",
       select: "name",
     });
 
-    let response = {};
+    let messageTemp = message ? message : filename;
+
+    let updateData = {
+      lastmsg: messageTemp,
+      msgtime: currentTime,
+    };
+
+    let updateQry = await ChatRoom.findByIdAndUpdate(chat_room_id, updateData, {
+      new: true,
+    }).lean();
+
     response = { newMessage, roomId: chat_room_id };
 
     return response;
