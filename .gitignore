@@ -4,3 +4,4 @@ node_modules
 .env
 package-lock.json
 Chat.postman_collection.json
+uploads

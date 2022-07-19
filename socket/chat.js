@@ -63,23 +63,23 @@ const getAllMessage = async (roomId) => {
 // Send Message API.
 const sendMessage = async (data) => {
   try {
-    let roomId = null;
-    let response = {};
+    let { chat_room_id, senderid, receiverid, message, filename } = data;
 
-    let { chat_room_id, senderid, receiverid, message } = data;
     let currentDateTime = await dateTime();
+    let currentTime = moment(new Date()).format("hh:mm A");
 
-    let currentTime = moment(new Date()).format("hh:mm:ss A");
-
-    let insertMsg = await Chat.create({
+    let insertData = {
       chat_room_id: chat_room_id,
       senderid: senderid,
       receiverid: receiverid,
       msgtime: currentTime,
-      message: message,
+      message: message && message,
+      filename: filename && filename,
       created_At: currentDateTime,
       updated_At: currentDateTime,
-    });
+    };
+
+    let insertMsg = await Chat.create(insertData);
 
     await ChatRoom.findByIdAndUpdate(chat_room_id, {
       $set: { lastmsg: message, msgtime: currentTime },
@@ -90,6 +90,7 @@ const sendMessage = async (data) => {
       select: "name",
     });
 
+    let response = {};
     response = { newMessage, roomId: chat_room_id };
 
     return response;

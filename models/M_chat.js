@@ -21,7 +21,9 @@ const chatSchema = new mongoose.Schema({
   },
   message: {
     type: String,
-    required: [true, "Message is required."],
+  },
+  filename: {
+    type: String,
   },
   created_At: {
     type: String,

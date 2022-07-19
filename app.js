@@ -5,11 +5,18 @@ const http = require("http");
 const server = http.createServer(app);
 const cors = require("cors");
 const fs = require("fs");
+const path = require("path");
 
 const { Server } = require("socket.io");
 
 require("dotenv").config();
 const port = process.env.API_PORT || 5001;
+
+const filePath = path.resolve(__dirname + "/uploads");
+
+if (!fs.existsSync(filePath)) {
+  fs.mkdirSync(filePath);
+}
 
 // configuration of cors
 app.use(
@@ -53,11 +60,6 @@ let {
 } = require("./socket/chat");
 
 io.on("connection", (socket) => {
-  // client-side
-  socket.on("connect", () => {
-    console.log(socket.id);
-  });
-
   // Find or Create room users SOCKET CALL.
   socket.on("findRoomEmit", async (data) => {
     try {
@@ -87,18 +89,19 @@ io.on("connection", (socket) => {
   socket.on("sendMessageEmit", async (data) => {
     try {
       let dataToSave = data;
-      if (data?.imageData) {
+      if (dataToSave?.file) {
         // process image
-        const image = data.imageData;
+        const image = data.file;
         var splitted = image.split(";base64,");
         var format = splitted[0].split("/")[1];
 
-        var imagePath = "./uploads/" + Date.now() + "." + format;
+        var fileName = Date.now() + "." + format;
+        var imagePath = "./uploads/" + fileName;
 
         fs.writeFileSync(imagePath, splitted[1], {
           encoding: "base64",
         });
-        dataToSave = { ...dataToSave, message: imagePath };
+        dataToSave = { ...dataToSave, filename: fileName };
       }
 
       let { newMessage, roomId } = await sendMessage(dataToSave);
