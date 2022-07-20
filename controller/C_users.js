@@ -54,8 +54,14 @@ const addUsers = async (req, res, next) => {
 const deleteUsers = async (req, res, next) => {
   try {
     let { user_id } = req.body;
+    let finduser = await User.findById(user_id);
 
-    await User.findByIdAndDelete(user_id);
+    if (finduser != null || finduser != undefined || finduser) {
+      await User.findByIdAndDelete(finduser._id);
+      removeFile(finduser.profile_picture);
+    } else {
+      throw new Error(`Couldn't find user!`);
+    }
 
     return res.send({
       success: true,
