@@ -1,10 +1,15 @@
 const User = require("./../models/M_users");
 const { dateTime } = require("./../utils/date_time");
+const { removeFile } = require("./../helper/removefile");
 
 // add users API.
 const addUsers = async (req, res, next) => {
   try {
     let { email_address, name } = req.body;
+
+    if (req.file) {
+      var userProfile = req.file.filename;
+    }
 
     let currentDateTime = await dateTime();
 
@@ -13,6 +18,7 @@ const addUsers = async (req, res, next) => {
     await User.create({
       email_address: email_address,
       name: name,
+      profile_picture: userProfile,
       user_id: userId,
       created_At: currentDateTime,
       updated_At: currentDateTime,
@@ -31,6 +37,10 @@ const addUsers = async (req, res, next) => {
         errorMsg = `${error.keyValue.email_address} email address is already exists!`;
     } else {
       errorMsg = error.message;
+    }
+
+    if (req.file) {
+      removeFile(req.file.filename);
     }
 
     return res.send({

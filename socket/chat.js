@@ -89,7 +89,7 @@ const sendMessage = async (data) => {
       select: "name",
     });
 
-    let messageTemp = message ? message : filename;
+    let messageTemp = message ? message : "FILES";
 
     let updateData = {
       lastmsg: messageTemp,
@@ -112,20 +112,35 @@ const getAllUsers = async () => {
   try {
     let allUser = await User.find();
 
-    // let allUserList = await Promise.all(
-    //   allUser.map(async (user) => {
-    //     let findRoom = await ChatRoom.findOne({
-    //       $or: [{ userid: user._id }, { otheruserid: user._id }],
-    //     }).select("lastmsg msgtime");
+    let allUserList = await Promise.all(
+      allUser.map(async (user) => {
+        let findRoomQry1 = await ChatRoom.findOne({ userid: user._id }).select(
+          "lastmsg msgtime"
+        );
 
-    //     console.log(findRoom, "findRoom");
+        let findRoomQry2 = await ChatRoom.findOne({
+          otheruserid: user._id,
+        }).select("lastmsg msgtime");
 
-    //     return findRoom;
-    //   })
-    // );
+        let findRoom = findRoomQry1 ? findRoomQry1 : findRoomQry2;
+
+        if (findRoom) {
+          let data = {
+            ...user._doc,
+            lastmsg: findRoom.lastmsg,
+            msgtime: findRoom.msgtime,
+          };
+
+          return data;
+        } else {
+          return user;
+        }
+      })
+    );
+
     // console.log(allUserList, "allUserList");
 
-    return allUser;
+    return allUserList;
   } catch (error) {
     throw new Error(error.message);
   }

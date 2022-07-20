@@ -16,8 +16,12 @@ const usersSchema = new mongoose.Schema({
     unique: [true, "Email address is already exists."],
   },
   name: { type: String, required: [true, "Name is required."] },
+  profile_picture: {
+    type: String,
+    required: [true, "Profile picture is required."],
+  },
   user_id: { type: Number, required: [true, "User Id is required."] },
-  islogin: { type: Boolean, required: [true, "User is login or not."] },
+  islogin: { type: Boolean },
   created_At: {
     type: String,
     required: [true, "Create date is required."],
