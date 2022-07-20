@@ -69,7 +69,7 @@ const sendMessage = async (data) => {
     let { chat_room_id, senderid, receiverid, message, filename } = data;
 
     let currentDateTime = await dateTime();
-    let currentTime = moment(new Date()).format("hh:mm A");
+    let currentTime = moment(new Date()).local().format("hh:mm A");
 
     let insertData = {
       chat_room_id: chat_room_id,
@@ -110,7 +110,22 @@ const sendMessage = async (data) => {
 
 const getAllUsers = async () => {
   try {
-    return await User.find();
+    let allUser = await User.find();
+
+    // let allUserList = await Promise.all(
+    //   allUser.map(async (user) => {
+    //     let findRoom = await ChatRoom.findOne({
+    //       $or: [{ userid: user._id }, { otheruserid: user._id }],
+    //     }).select("lastmsg msgtime");
+
+    //     console.log(findRoom, "findRoom");
+
+    //     return findRoom;
+    //   })
+    // );
+    // console.log(allUserList, "allUserList");
+
+    return allUser;
   } catch (error) {
     throw new Error(error.message);
   }
