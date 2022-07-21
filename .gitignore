@@ -5,3 +5,6 @@ node_modules
 package-lock.json
 Chat.postman_collection.json
 uploads
+
+utils/code-template-70a9b-firebase-adminsdk-g9oy2-c55b600383.json
+utils/firebase.js
