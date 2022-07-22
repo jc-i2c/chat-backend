@@ -13,24 +13,25 @@ const addUsers = async (req, res, next) => {
 
     let currentDateTime = await dateTime();
 
-    let userId = Math.floor(100000 + Math.random() * 900000);
-
-    await User.create({
+    let newUser = await User.create({
       email_address: email_address,
       name: name,
       profile_picture: userProfile,
-      user_id: userId,
       created_At: currentDateTime,
       updated_At: currentDateTime,
     });
 
     return res.send({
       success: true,
-      message: `User created. Id is ${userId}`,
-      data: userId,
+      message: `User created.`,
+      data: newUser,
     });
   } catch (error) {
     // Mongoose validation.
+    if (req.file) {
+      removeFile(req.file.filename);
+    }
+
     let errorMsg = "";
     if (error.code === 11000) {
       if (error.keyValue.email_address)
@@ -39,9 +40,10 @@ const addUsers = async (req, res, next) => {
       errorMsg = error.message;
     }
 
-    if (req.file) {
-      removeFile(req.file.filename);
-    }
+    // if (error.errors.profile_picture === "ValidatorError") {
+    //   console.log(error.errors.profile_picture, "error.errors.profile_picture");
+    //   errorMsg = "Profile picture is required!";
+    // }
 
     return res.send({
       success: false,
@@ -53,8 +55,8 @@ const addUsers = async (req, res, next) => {
 // Delete users API.
 const deleteUsers = async (req, res, next) => {
   try {
-    let { user_id } = req.body;
-    let finduser = await User.findById(user_id);
+    let { email_address } = req.body;
+    let finduser = await User.findOne({ email_address: email_address });
 
     if (finduser != null || finduser != undefined || finduser) {
       await User.findByIdAndDelete(finduser._id);
@@ -96,17 +98,17 @@ const getAllUsers = async (req, res, next) => {
 // Users code verify API.
 const codeVerify = async (req, res, next) => {
   try {
-    let { user_code } = req.body;
+    let { email_address } = req.body;
 
-    if (!user_code) throw new Error("User code is required!");
+    if (!email_address) throw new Error("Email address is required!");
 
-    let findUser = await User.findOne({ user_id: user_code });
+    let findUser = await User.findOne({ email_address: email_address });
 
-    if (!findUser) throw new Error("wrong credentials!");
+    if (!findUser) throw new Error("Wrong credentials!");
 
     return res.send({
       success: true,
-      message: `user login in successfully!`,
+      message: `User login in successfully!`,
       data: findUser,
     });
   } catch (error) {

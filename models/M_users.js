@@ -20,7 +20,6 @@ const usersSchema = new mongoose.Schema({
     type: String,
     required: [true, "Profile picture is required."],
   },
-  user_id: { type: Number, required: [true, "User Id is required."] },
   islogin: { type: Boolean },
   created_At: {
     type: String,
