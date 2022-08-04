@@ -10,7 +10,7 @@ const path = require("path");
 const { Server } = require("socket.io");
 
 require("dotenv").config();
-const port = process.env.API_PORT || 5001;
+const port = process.env.API_PORT || 7001;
 
 const filePath = path.resolve(__dirname + "/uploads");
 
@@ -112,7 +112,7 @@ io.on("connection", (socket) => {
   });
 
   // Get all user list SOCKET.
-  socket.on("userListEmit", async () => {
+  socket.on("allUserList", async () => {
     try {
       let userList = await getAllUsers();
       socket.emit("userListOn", userList);
@@ -131,6 +131,9 @@ io.on("connection", (socket) => {
       console.log(error.message);
     }
   });
+
+  // Get ONLY chat users list.
+  // socket.on("userChatList");
 });
 
 server.listen(port, () => console.log(`Server app listening on port: ${port}`));
