@@ -1,9 +1,10 @@
 const moment = require("moment");
 const axios = require("axios");
+const { ObjectId } = require("mongodb");
 
+const User = require("./../models/M_users");
 const ChatRoom = require("../models/M_chat_room");
 const Chat = require("../models/M_chat");
-const User = require("./../models/M_users");
 
 const { dateTime } = require("../utils/date_time");
 
@@ -108,7 +109,7 @@ const sendMessage = async (data) => {
     //   "fTXPrT23Tv2xKj4cUfp5QT:APA91bGwYwN0vcE-DDfZFYHalNFWx0gdXNBXV6wS_wo8R-7Vtjui63Mqn0snA3DA0Gq1KwLDI10v30wWol9coKgBsytdkGAIx3i_SHiOggRgzGAcVbbJ_TKo4DUD7om5aqqKIpa8KiRy",
     // ];
 
-    // const usertoken =
+    // const serverKey =
     //   "AAAANKy5iuA:APA91bFum39-_forfH1D5-yimjpmke7C9v1mPyM1-1_tZ8Hz6I9fvEChoKqGps27mh2luSqn3JW5vxQGeRsgRdKgB5S5ENMVEmqeuRhW_OC41pIxbQi75LNO6vy_FgWjdFOV1E7XFhwd";
 
     // const payload = {
@@ -125,7 +126,7 @@ const sendMessage = async (data) => {
     //   payload,
     //   {
     //     headers: {
-    //       Authorization: `Bearer ${usertoken}`,
+    //       Authorization: `Bearer ${serverKey}`,
     //     },
     //   }
     // );
@@ -145,6 +146,9 @@ const getAllUsers = async () => {
 
     let allUserList = await Promise.all(
       allUser.map(async (user) => {
+        let newUrl =
+          `${process.env.REACT_APP_PROFILEPIC}` + user.profile_picture;
+
         let findRoomQry1 = await ChatRoom.findOne({ userid: user._id }).select(
           "lastmsg msgtime"
         );
@@ -154,22 +158,23 @@ const getAllUsers = async () => {
         }).select("lastmsg msgtime");
 
         let findRoom = findRoomQry1 ? findRoomQry1 : findRoomQry2;
-
+        let data;
         if (findRoom) {
-          let data = {
+          data = {
             ...user._doc,
+            profile_picture: newUrl,
             lastmsg: findRoom.lastmsg,
             msgtime: findRoom.msgtime,
           };
-
-          return data;
         } else {
-          return user;
+          data = {
+            ...user._doc,
+            profile_picture: newUrl,
+          };
         }
+        return data;
       })
     );
-
-    // console.log(allUserList, "allUserList");
 
     return allUserList;
   } catch (error) {
@@ -194,10 +199,76 @@ const updateStatus = async (userId) => {
   }
 };
 
+const getChatingUser = async (currentUserId) => {
+  try {
+    let findRoom = await ChatRoom.find({
+      $or: [{ userid: currentUserId }, { otheruserid: currentUserId }],
+    });
+
+    if (findRoom.length > 0) {
+      let userList = [];
+      let finalRoom = await Promise.all(
+        findRoom.map(async (item) => {
+          let findRoom = item.toObject();
+
+          let userIds = "";
+          let found1 = userList.some((el) => el == findRoom.userid);
+
+          if (!found1) {
+            userList.push(findRoom.userid.toString());
+            userIds = findRoom.userid.toString();
+          }
+
+          let found2 = userList.some((el) => el == findRoom.otheruserid);
+
+          if (!found2) {
+            userList.push(findRoom.otheruserid.toString());
+            userIds = findRoom.otheruserid.toString();
+          }
+
+          let roomId = findRoom._id;
+          delete findRoom._id;
+          delete findRoom.room_id;
+          delete findRoom.userid;
+          delete findRoom.otheruserid;
+          delete findRoom.created_At;
+          delete findRoom.updated_At;
+          delete findRoom.__v;
+
+          userIds = ObjectId(userIds);
+
+          let findUsers = await User.findById(userIds);
+
+          let finalData = {};
+          if (findUsers != null) {
+            let newUrl =
+              `${process.env.REACT_APP_PROFILEPIC}` + findUsers.profile_picture;
+
+            finalData = {
+              ...findRoom,
+              roomid: roomId,
+              _id: findUsers._id,
+              name: findUsers.name,
+              profile_picture: newUrl && newUrl,
+            };
+          }
+
+          return finalData;
+        })
+      );
+
+      return finalRoom;
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 module.exports = {
   createRoom,
   getAllMessage,
   sendMessage,
   getAllUsers,
   updateStatus,
+  getChatingUser,
 };

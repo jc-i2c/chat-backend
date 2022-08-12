@@ -57,6 +57,7 @@ let {
   sendMessage,
   getAllUsers,
   updateStatus,
+  getChatingUser,
 } = require("./socket/chat");
 
 io.on("connection", (socket) => {
@@ -115,7 +116,19 @@ io.on("connection", (socket) => {
   socket.on("allUserList", async () => {
     try {
       let userList = await getAllUsers();
-      socket.emit("userListOn", userList);
+      socket.emit("userList", userList);
+      socket.emit("allUserList", userList);
+    } catch (error) {
+      console.log(error.message);
+    }
+  });
+
+  // Get all user list SOCKET.
+  socket.on("chatUserEmit", async (currentUserId) => {
+    try {
+      let chatUserData = await getChatingUser(currentUserId);
+      // console.log(chatUserData, "chatUserData");
+      socket.emit("chatUserOn", chatUserData);
     } catch (error) {
       console.log(error.message);
     }
@@ -131,9 +144,6 @@ io.on("connection", (socket) => {
       console.log(error.message);
     }
   });
-
-  // Get ONLY chat users list.
-  // socket.on("userChatList");
 });
 
 server.listen(port, () => console.log(`Server app listening on port: ${port}`));

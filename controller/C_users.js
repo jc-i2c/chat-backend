@@ -106,10 +106,18 @@ const codeVerify = async (req, res, next) => {
 
     if (!findUser) throw new Error("Wrong credentials!");
 
+    let userData = findUser.toObject();
+
+    let newUrl =
+      `${process.env.REACT_APP_PROFILEPIC}` + userData.profile_picture;
+
+    delete userData.__v;
+    userData = { ...userData, profile_picture: newUrl };
+
     return res.send({
       success: true,
       message: `User login in successfully!`,
-      data: findUser,
+      data: userData,
     });
   } catch (error) {
     return res.send({
