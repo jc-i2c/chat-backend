@@ -201,40 +201,54 @@ const updateStatus = async (userId) => {
 
 const getChatingUser = async (currentUserId) => {
   try {
-    let findRoom = await ChatRoom.find({
-      $or: [{ userid: currentUserId }, { otheruserid: currentUserId }],
+    let findRoom = [];
+    let find1 = await ChatRoom.find({
+      userid: currentUserId,
     });
+
+    let find2 = await ChatRoom.find({
+      otheruserid: currentUserId,
+    });
+
+    if (find1.length > 0) {
+      find1.forEach((find1Item) => {
+        findRoom.push(find1Item);
+      });
+    }
+    if (find2.length > 0) {
+      find2.forEach((find2Item) => {
+        findRoom.push(find2Item);
+      });
+    }
 
     if (findRoom.length > 0) {
       let userList = [];
       let finalRoom = await Promise.all(
         findRoom.map(async (item) => {
-          let findRoom = item.toObject();
-
+          let userOneByOne = item.toObject();
           let userIds = "";
-          let found1 = userList.some((el) => el == findRoom.userid);
+          let found1 = userList.some((el) => el == userOneByOne.userid);
 
           if (!found1) {
-            userList.push(findRoom.userid.toString());
-            userIds = findRoom.userid.toString();
+            userList.push(userOneByOne.userid.toString());
+            userIds = userOneByOne.userid.toString();
           }
 
-          let found2 = userList.some((el) => el == findRoom.otheruserid);
+          let found2 = userList.some((el) => el == userOneByOne.otheruserid);
 
           if (!found2) {
-            userList.push(findRoom.otheruserid.toString());
-            userIds = findRoom.otheruserid.toString();
+            userList.push(userOneByOne.otheruserid.toString());
+            userIds = userOneByOne.otheruserid.toString();
           }
 
-          let roomId = findRoom._id;
-          delete findRoom._id;
-          delete findRoom.room_id;
-          delete findRoom.userid;
-          delete findRoom.otheruserid;
-          delete findRoom.created_At;
-          delete findRoom.updated_At;
-          delete findRoom.__v;
-
+          let roomId = userOneByOne._id;
+          delete userOneByOne._id;
+          delete userOneByOne.room_id;
+          delete userOneByOne.userid;
+          delete userOneByOne.otheruserid;
+          delete userOneByOne.created_At;
+          delete userOneByOne.updated_At;
+          delete userOneByOne.__v;
           userIds = ObjectId(userIds);
 
           let findUsers = await User.findById(userIds);
@@ -243,9 +257,8 @@ const getChatingUser = async (currentUserId) => {
           if (findUsers != null) {
             let newUrl =
               `${process.env.REACT_APP_PROFILEPIC}` + findUsers.profile_picture;
-
             finalData = {
-              ...findRoom,
+              ...userOneByOne,
               roomid: roomId,
               _id: findUsers._id,
               name: findUsers.name,
@@ -256,7 +269,6 @@ const getChatingUser = async (currentUserId) => {
           return finalData;
         })
       );
-
       return finalRoom;
     }
   } catch (error) {

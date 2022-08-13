@@ -127,7 +127,6 @@ io.on("connection", (socket) => {
   socket.on("chatUserEmit", async (currentUserId) => {
     try {
       let chatUserData = await getChatingUser(currentUserId);
-      // console.log(chatUserData, "chatUserData");
       socket.emit("chatUserOn", chatUserData);
     } catch (error) {
       console.log(error.message);
